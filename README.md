@@ -8,7 +8,7 @@ git は Github Desktop をインストールすることでインストールさ
 
 ### Node.js のインストール
 
-PowerShellを起動し、以下のコマンドを実行します。
+PowerShell を起動し、以下のコマンドを実行します。
 
 ```powershell
 
@@ -19,8 +19,18 @@ fnm use --install-if-missing 20
 
 ### リポジトリのクローン
 
-コマンドプロンプト、もしくはPowerShellを起動し、プログラムをインストールしたいフォルダに移動した上で以下のコマンドを実行します。
+コマンドプロンプト、もしくは PowerShell を起動し、プログラムをインストールしたいフォルダに移動した上で以下のコマンドを実行します。
 
 ```bash
 git clone https://github.com/ikenaga-keiei/customer-yabumoto-nodejs-public.git
 ```
+
+### .env ファイルの作成
+
+.env.sample ファイルをコピーして .env ファイルを作成してください。
+
+```bash
+copy .env.sample .env
+```
+
+コピー後、ご利用の環境に合わせて .env ファイルを編集してください。
