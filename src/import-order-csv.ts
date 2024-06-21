@@ -163,6 +163,9 @@ async function importOrderCSV(params: { year: number; month: number; observer: O
 
   observer.start('CSVデータの読み込み');
   const { data, errors } = parse<TatenpoOrderCSVRow>(file, { header: true });
+  for (const error of errors) {
+    observer.log(`[ERROR] ${error.message}`);
+  }
   observer.end();
 
   observer.start('受注IDが重複するデータを削除');
