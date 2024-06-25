@@ -152,6 +152,7 @@ async function importOrderCSV(params: { year: number; month: number; observer: O
   const targetFilePath = path.join(
     process.env.TG_ORDER_DIRECTORY_PATH!,
     year.toString(),
+    monthString,
     `tg_order_sells__${year}_${monthString}.csv`
   );
 
