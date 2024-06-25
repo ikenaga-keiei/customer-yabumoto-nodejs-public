@@ -120,12 +120,13 @@ type ExtendedTatenpoOrderCSVRow = TatenpoOrderCSVRow & {
 
   const now = DateTime.local();
   const { year, month } = now;
-  const { year: yeasterDayYear, month: yeasterDayMonth } = now.minus({ days: 1 });
+  const { year: previousMonthYear, month: previousMonth } = now.minus({ months: 1 });
+
+  const isPreviousMonthEnabled =
+    previousMonthYear > 2024 || (previousMonthYear === 2024 && previousMonth >= 6);
 
   const dates = [
-    ...(year === yeasterDayYear && month === yeasterDayMonth
-      ? []
-      : [{ year: yeasterDayYear, month: yeasterDayMonth }]),
+    ...(isPreviousMonthEnabled ? [{ year: previousMonthYear, month: previousMonth }] : []),
     { year, month },
   ];
 
