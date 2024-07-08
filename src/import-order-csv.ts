@@ -333,7 +333,7 @@ function extendTatenpoOrderCSVRow(
   const key = getUserKey({ name: ordererName, phoneNumber, address });
 
   const remark = formatRemark(
-    `${row['受注ID']}, ${row['受注日時']}${row['備考'] ? `, ${row['備考']}` : ''}`,
+    `${row['受注ID']}, ${row['受注日時']}${row['担当者備考'] ? `, ${row['担当者備考']}` : ''}`,
     remarkTemplates
   );
 
