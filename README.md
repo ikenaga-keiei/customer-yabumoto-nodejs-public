@@ -8,14 +8,9 @@ git は Github Desktop をインストールすることでインストールさ
 
 ### Node.js のインストール
 
-PowerShell を起動し、以下のコマンドを実行します。
+[Node.js](https://nodejs.org/en/download/package-manager)
 
-```powershell
-
-winget install Schniz.fnm
-fnm use --install-if-missing 20
-
-```
+上記のページから、20.15.0 LTS をダウンロードしてインストールしてください。
 
 ### リポジトリのクローン
 
