@@ -8,7 +8,7 @@ git は Github Desktop をインストールすることでインストールさ
 
 ### Node.js のインストール
 
-[Node.js](https://nodejs.org/en/download/package-manager)
+[Node.js](https://nodejs.org/en/download/prebuilt-installer)
 
 上記のページから、20.15.0 LTS をダウンロードしてインストールしてください。
 
