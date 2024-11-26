@@ -3,7 +3,7 @@ config();
 
 const baseUrl = process.env.KINTONE_BASE_URL;
 
-const isProduction = baseUrl?.includes('yabumoto');
+const isProduction = baseUrl?.includes('yabumoto') ?? false;
 
 isProduction ? console.log('本番用として実行します') : console.log('開発用として実行します');
 
