@@ -147,6 +147,21 @@ type ExtendedTatenpoOrderCSVRow = TatenpoOrderCSVRow & {
   observer.write();
 })();
 
+/**
+ * 受注データを読み込み、顧客情報を登録・更新する
+ *
+ * - CSVを読み込む
+ * - 重複する受注IDを削除する
+ * - 顧客情報を取得する
+ * - 備考テンプレートを取得する
+ * - CSVデータを補完する
+ * - 顧客情報の登録・更新の振り分けを行う
+ *   - 行の「注文者氏名」、「注文者電話番号」、「注文者都道府県」「注文者市区町村」、「注文者番地」、「注文者建物名」をキーとする
+ *   - いずれかの顧客情報の「重複キー」とキーが一致する場合は更新対象、そうでない場合は追加対象とする
+ * - レコードを作成する
+ * - レコードを登録・更新する
+ * - キャッシュデータを更新する
+ */
 async function importOrderCSV(params: { year: number; month: number; observer: Observer }) {
   const { year, month, observer } = params;
   const monthString = month.toString().padStart(2, '0');
@@ -183,6 +198,7 @@ async function importOrderCSV(params: { year: number; month: number; observer: O
   }
 
   const filteredData = data
+    .filter((row) => !!row['注文者氏名'] || !!row['注文者電話番号'] || !!row['注文者都道府県'])
     .filter((row) => !cacheData.orderIds.includes(row['受注ID']))
     .filter((row, index, self) => self.findIndex((r) => r['受注ID'] === row['受注ID']) === index);
 
@@ -242,35 +258,49 @@ async function importOrderCSV(params: { year: number; month: number; observer: O
 
     const subtable = registered['送付先情報'] as kintoneAPI.field.Subtable;
 
-    const isDuplicate = subtable.value.some(
-      (recipient) =>
-        key ===
-        getUserKey({
-          name: recipient.value['送付先名前'].value as string,
-          phoneNumber: recipient.value['送付先電話番号'].value as string,
-          address: {
-            todofuken: recipient.value['送付先都道府県'].value as string,
-            shikuchoson: recipient.value['送付先市区町村'].value as string,
-            banchi: recipient.value['送付先番地'].value as string,
-            tatemono: recipient.value['送付先建物名'].value as string,
-          },
-        })
-    );
+    const newSubtable = values.reduce((acc, csvRow) => {
+      const key = csvRow.recipientKey;
 
-    const newSubtableRows: any[] = subtable.value;
-    if (!isDuplicate) {
-      newSubtableRows.push({
+      const isDuplicate = acc.value.some(
+        (recipient) =>
+          key ===
+          getUserKey({
+            name: recipient.value['送付先名前'].value as string,
+            phoneNumber: recipient.value['送付先電話番号'].value as string,
+            address: {
+              todofuken: recipient.value['送付先都道府県'].value as string,
+              shikuchoson: recipient.value['送付先市区町村'].value as string,
+              banchi: recipient.value['送付先番地'].value as string,
+              tatemono: recipient.value['送付先建物名'].value as string,
+            },
+          })
+      );
+
+      if (isDuplicate) {
+        return acc;
+      }
+
+      acc.value.push({
         value: {
-          送付先名前: { value: values[0].recipientName },
-          送付先電話番号: { value: values[0].recipientPhoneNumber },
-          送付先郵便番号: { value: values[0].recipientAddressNumber },
-          送付先都道府県: { value: values[0].recipientAddress.todofuken },
-          送付先市区町村: { value: values[0].recipientAddress.shikuchoson },
-          送付先番地: { value: values[0].recipientAddress.banchi },
-          送付先建物名: { value: values[0].recipientAddress.tatemono },
+          // @ts-ignore
+          送付先名前: { value: csvRow.recipientName },
+          // @ts-ignore
+          送付先電話番号: { value: csvRow.recipientPhoneNumber },
+          // @ts-ignore
+          送付先郵便番号: { value: csvRow.recipientAddressNumber },
+          // @ts-ignore
+          送付先都道府県: { value: csvRow.recipientAddress.todofuken },
+          // @ts-ignore
+          送付先市区町村: { value: csvRow.recipientAddress.shikuchoson },
+          // @ts-ignore
+          送付先番地: { value: csvRow.recipientAddress.banchi },
+          // @ts-ignore
+          送付先建物名: { value: csvRow.recipientAddress.tatemono },
         },
       });
-    }
+
+      return acc;
+    }, subtable);
 
     const newRemark = `${values.map((row) => row.remark).join('\n')}${
       registered['備考']?.value ? `\n${registered['備考'].value}` : ''
@@ -279,7 +309,7 @@ async function importOrderCSV(params: { year: number; month: number; observer: O
     recordsToUpdate.push({
       id: registered?.$id.value as string,
       record: {
-        送付先情報: { value: newSubtableRows },
+        送付先情報: newSubtable,
         備考: { value: newRemark },
       },
     });
