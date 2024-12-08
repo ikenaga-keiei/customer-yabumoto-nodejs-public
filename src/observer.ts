@@ -50,6 +50,10 @@ export class Observer {
     this.#label = null;
   }
 
+  public getFullLog() {
+    return this.#log;
+  }
+
   /**
    * ログをファイルに出力する
    */

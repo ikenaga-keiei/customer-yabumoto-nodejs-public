@@ -9,3 +9,9 @@ export const sendMessageForIkenagaChatwork = (message: string) => {
     body: `[info][title]${process.env.KINTONE_BASE_URL}でのエラー[/title]${message}[/info]`,
   });
 };
+
+export const sendResultMessageForIkenagaChatwork = (message: string) => {
+  return chatworkClient.postRoomMessage(373789581, {
+    body: `[info][title]${process.env.KINTONE_BASE_URL}での処理結果[/title]${message}[/info]`,
+  });
+};

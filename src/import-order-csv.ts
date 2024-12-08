@@ -19,7 +19,7 @@ import { kintoneAPI } from '@konomi-app/kintone-utilities';
 import { bulkRequest } from './lib/rest-api';
 import { APP_ID_CLIENT } from './constants';
 import { getClientRecordsMap, getRemarkTemplates } from './lib/kintone';
-import { sendMessageForIkenagaChatwork } from './lib/chatwork';
+import { sendMessageForIkenagaChatwork, sendResultMessageForIkenagaChatwork } from './lib/chatwork';
 import { Observer } from './observer';
 import fs from 'fs-extra';
 import { DateTime } from 'luxon';
@@ -137,6 +137,7 @@ type ExtendedTatenpoOrderCSVRow = TatenpoOrderCSVRow & {
     try {
       observer.log(`📝 ${year}年${month}月の受注データ取込を開始します`);
       await importOrderCSV({ year, month, observer });
+      await sendResultMessageForIkenagaChatwork(observer.getFullLog());
     } catch (error: any) {
       observer.log(error?.message);
       await sendMessageForIkenagaChatwork(
