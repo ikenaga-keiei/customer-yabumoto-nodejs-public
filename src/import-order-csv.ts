@@ -141,7 +141,8 @@ type ExtendedTatenpoOrderCSVRow = TatenpoOrderCSVRow & {
     } catch (error: any) {
       observer.log(error?.message);
       await sendMessageForIkenagaChatwork(
-        `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}`
+        `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}
+${observer.getFullLog()}`
       );
     }
   }
