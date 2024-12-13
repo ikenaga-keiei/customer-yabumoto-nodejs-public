@@ -137,13 +137,21 @@ type ExtendedTatenpoOrderCSVRow = TatenpoOrderCSVRow & {
     try {
       observer.log(`📝 ${year}年${month}月の受注データ取込を開始します`);
       await importOrderCSV({ year, month, observer });
-      await sendResultMessageForIkenagaChatwork(observer.getFullLog());
+      try {
+        await sendResultMessageForIkenagaChatwork(observer.getFullLog());
+      } catch (e) {}
     } catch (error: any) {
       observer.log(error?.message);
-      await sendMessageForIkenagaChatwork(
-        `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}
-${observer.getFullLog()}`
-      );
+      try {
+        await sendMessageForIkenagaChatwork(
+          `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}
+  ${observer.getFullLog()}`
+        );
+      } catch (e) {
+        await sendMessageForIkenagaChatwork(
+          `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}`
+        );
+      }
     }
   }
   observer.write();
