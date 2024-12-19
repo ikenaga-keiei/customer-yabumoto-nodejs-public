@@ -20,7 +20,8 @@
     "luxon": "^3.4.4",
     "node-fetch": "^3.3.2",
     "papaparse": "^5.4.1",
-    "qs": "^6.12.1"
+    "qs": "^6.12.1",
+    "remeda": "^2.18.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
