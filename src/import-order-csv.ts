@@ -112,49 +112,61 @@ type ExtendedTatenpoOrderCSVRow = TatenpoOrderCSVRow & {
 };
 
 (async () => {
-  [OUTPUT_ROOT, CACHE_ROOT].forEach((dir) => {
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
-    }
-  });
+  try {
+    [OUTPUT_ROOT, CACHE_ROOT].forEach((dir) => {
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+      }
+    });
 
-  const now = DateTime.local();
-  const { year, month } = now;
-  const { year: previousMonthYear, month: previousMonth } = now.minus({ months: 1 });
+    const now = DateTime.local();
+    const { year, month } = now;
+    const { year: previousMonthYear, month: previousMonth } = now.minus({ months: 1 });
 
-  const isPreviousMonthEnabled =
-    previousMonthYear > 2024 || (previousMonthYear === 2024 && previousMonth >= 6);
+    const isPreviousMonthEnabled =
+      previousMonthYear > 2024 || (previousMonthYear === 2024 && previousMonth >= 6);
 
-  const dates = [
-    ...(isPreviousMonthEnabled ? [{ year: previousMonthYear, month: previousMonth }] : []),
-    { year, month },
-  ];
+    const dates = [
+      ...(isPreviousMonthEnabled ? [{ year: previousMonthYear, month: previousMonth }] : []),
+      { year, month },
+    ];
 
-  const observer = new Observer(
-    path.join(OUTPUT_ROOT, `${now.toFormat('yyyy_MM_dd_hh_mm_ss')}_import_order_csv.log`)
-  );
-  for (const { year, month } of dates) {
-    try {
-      observer.log(`📝 ${year}年${month}月の受注データ取込を開始します`);
-      await importOrderCSV({ year, month, observer });
+    const observer = new Observer(
+      path.join(OUTPUT_ROOT, `${now.toFormat('yyyy_MM_dd_hh_mm_ss')}_import_order_csv.log`)
+    );
+    for (const { year, month } of dates) {
       try {
-        await sendResultMessageForIkenagaChatwork(observer.getFullLog());
-      } catch (e) {}
-    } catch (error: any) {
-      observer.log(error?.message);
-      try {
-        await sendMessageForIkenagaChatwork(
-          `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}
-  ${observer.getFullLog()}`
-        );
-      } catch (e) {
-        await sendMessageForIkenagaChatwork(
-          `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}`
-        );
+        observer.log(`📝 ${year}年${month}月の受注データ取込を開始します`);
+        await importOrderCSV({ year, month, observer });
+        try {
+          await sendResultMessageForIkenagaChatwork(observer.getFullLog());
+        } catch (e) {}
+      } catch (error: any) {
+        observer.log(error?.message);
+        try {
+          await sendMessageForIkenagaChatwork(
+            `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}
+    ${observer.getFullLog()}`
+          );
+        } catch (e) {
+          await sendMessageForIkenagaChatwork(
+            `${year}年${month}月の受注データ取込時にエラーが発生しました[hr]${error?.message}`
+          );
+        }
       }
     }
+    observer.write();
+  } catch (error) {
+    try {
+      if (error instanceof Error) {
+        await sendMessageForIkenagaChatwork(
+          `受注データ取込時にエラーが発生しました[hr]${error.message}`
+        );
+      } else {
+        await sendMessageForIkenagaChatwork(`受注データ取込時にエラーが発生しました`);
+      }
+    } catch (e) {}
   }
-  observer.write();
 })();
 
 /**
@@ -221,18 +233,18 @@ async function importOrderCSV(params: { year: number; month: number; observer: O
     return;
   }
 
-  observer.start('登録済みの顧客情報を取得');
-  const clientRecordsMap = await getClientRecordsMap({
-    fields: ['$id', '重複キー', '備考', '送付先情報'],
-  });
-  observer.end();
-
   observer.start('備考テンプレートの取得');
   const remarkTemplates = await getRemarkTemplates();
   observer.end();
 
   observer.start('CSVデータの補完');
   const completed = filteredData.map((row) => extendTatenpoOrderCSVRow(row, remarkTemplates));
+  observer.end();
+
+  observer.start('登録済みの顧客情報を取得');
+  const clientRecordsMap = await getClientRecordsMap({
+    fields: ['$id', '重複キー', '備考', '送付先情報'],
+  });
   observer.end();
 
   observer.start('顧客情報の登録・更新の振り分け');
